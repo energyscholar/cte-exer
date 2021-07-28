@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.3'
 
 services: 
   mysqldb:
@@ -6,10 +6,10 @@ services:
     restart: always
     env_file: ./.env
     environment:
-      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
-      MYSQL_DATABASE: $MYSQL_DATABASE
+      MYSQL_ROOT_PASSWORD: YwhetJd
+      MYSQL_DATABASE: CTE_EXERCISE
     ports:
-      - $MYSQL_LOCAL_PORT:$MYSQL_DOCKER_PORT
+      - 3306:8005
     volumes: 
       - db-config:/etc/mysql
       - db-data:/var/lib/mysql
