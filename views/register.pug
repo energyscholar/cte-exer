@@ -1,0 +1,20 @@
+extends base.pug
+
+block content
+    div.container    
+
+
+    form(action="/register" method='post')
+        p#legend Create an account
+        label.letter(for='username') Email as Username:
+            input#username(type="text", name="username")
+        label.letter(for='password') Password:
+            input#password(type="password", name="password")
+        label.letter(for='firstname') First Name:
+            input#firstname(type="text", name="firstname")
+        label.letter(for='lastname') Last Name:
+            input#lastname(type="text", name="lastname")
+        div.asub
+            input.submit(type="submit", name="done")   
+
+        
