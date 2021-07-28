@@ -24,4 +24,4 @@ Bruce's Comments:
 
 As of 28 July 2021 this is deployed to AWS EC2 server (Ubuntu) at http://3.84.203.16:3000/
 
-Note that this app is NOT running with HTTPS, only HTTP, so it's hopeless insecure.  
+Note that this app is NOT running with HTTPS, only HTTP.  
