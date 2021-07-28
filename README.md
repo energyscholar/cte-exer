@@ -15,11 +15,12 @@ The application must support
 Bonus is to use either Google or Facebook options for user signup/login.
 
 ***********************************************************************************
-Bruce's comments:
 
 When complete we will review the application function and source code/deployment scripts by running the application and by reviewing the source code. As I previously indicated, application styling/ui will not be evaluated other than from a functional standpoint.
 
 All the source code/ip you write for this assignment is your property and you grant CTE the right to review and exercise it.
+
+Bruce's Comments:
 
 As of 28 July 2021 this is deployed to AWS EC2 server (Ubuntu) at http://3.84.203.16:3000/
 
