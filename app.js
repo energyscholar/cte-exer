@@ -1,19 +1,19 @@
 var express = require('express');
 var session = require('express-session');
 var bodyParser= require('body-parser');
-//var pageRouter = require('./routes/pages');
 var passport = require ('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var User = require('./core/user');
 var Data = require('./core/data');
 var app=express();
-var users = [{"id":0, "username":"", "password":"", "firstname":"", "lastname":""}];
+
+var users = [{"id":0, "username":"", "password":"", "firstname":"", "lastname":""}]; // Sets a dummy array for serializing/deserializing users to session data
+// Note that above dummy user presents a potential security vulnerability.  TODO: Clean this up to remove vulnerability
 
 // Implementation of LocalStrategy passport authentication
 
 // passport needs ability to serialize and unserialize users out of session
 passport.serializeUser(function (user, done) {
-    console.log("serializeUser user[0].id is " + user[0].id);
     done(null, user[0].id);
 });
 
@@ -28,15 +28,24 @@ passport.use('local-login', new LocalStrategy(
         const user = new User();
         var foundUser;
          foundUser = user.find(username, function(result){
-             console.log("after find result is " + result);
+             //console.log("after find result is " + result);  
+             // TODO: implement system where console.log statements are visible in DEV mode yet  don't execute in PROD
+             /*
+             This looks like:
+             if (DEV) {
+                 console.log("Log statement visible only in DEV");
+             } 
+             Real production code should NEVER have commented out code.  That said, console.log statement will be commented out.
+             */ 
              if (result != null) {
-                 console.log("username is "+username+" and password is " + password);
-                 console.log("just after find,result[0].username is |"+result[0].username + "|  result[0].password = |" + result[0].password+"|");
+                 //console.log("username is "+username+" and password is " + password);
+                 //console.log("just after find,result[0].username is |"+result[0].username + "|  result[0].password = |" + result[0].password+"|");
                  if (username === result[0].username && password === result[0].password) {
-                     console.log("login succeeds");
+                     //console.log("login succeeds");
+                     // TODO: Display messages in UI so user knows login succeeded. 
                      return done(null, result, {"message": "Login successful"});
                  } else {
-                     console.log("login fails");
+                     //console.log("login fails");
                      return done(null, false, {"message": "Password does not match"});
                    }
              } else {
@@ -51,6 +60,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
  
 // initialize passport and and session for persistent login sessions
+// TODO: In PROD mode the session secret should be added by DOVOPS and not in code
 app.use(session({
     secret: "tHiSiSasEcRetStr",
     resave: true,
@@ -59,38 +69,38 @@ app.use(passport.initialize());
 app.use(passport.session());
  
 // route middleware to ensure user is logged in
+// This only blocks two pages: POST (/data) and GET(/data)
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated())
         return next();
  
-    res.sendStatus(401);
+    res.sendStatus(401); // send unauthorized HTTP 401 message
 }
  
 // api endpoints for login, content and logout
 
-
+// Catch login attempt and process via passport-local,
+// TODO: add version for passport-google.
 app.post("/login", 
     passport.authenticate("local-login", { failureRedirect: "/"}),
      function (req, res) {
-        console.log("app.post login succeeded");
+        //console.log("app.post login succeeded");
         res.redirect("/data");
     }
 );
 
-
+// Logout.  Clears session data.  
+// TODO: Provide better UI message to user showing successful logout 
 app.get("/logout", function (req, res) {
     req.logout();
     res.send("logout success! <a href='http://3.84.203.16:3000/'>home</a>");
 });
 
-app.get('/data', isLoggedIn, function  (req, res) {    
-    const data = new Data();
-    par=req.params
-    data.read(par,function(result){
-        res.render('data',{title:"Enter Health Data",data:result, message: 'Hello world!'});
-    })
-});
-
+// Process user registration
+// TODO: Add UI message for "Registration Successful"
+// TODO: Currently redirects user to login form.  Could instead double as a successful login.  That's a requirements decision.
+// TODO: Add both client-side and server-side  validation of all registration fields.
+// Possibly also add email confirmation of registration.  Depends on requirements.
 app.post('/register', (req, res, next) => {  
     const user= new User();
     let userInput = {
@@ -99,19 +109,30 @@ app.post('/register', (req, res, next) => {
         firstname: req.body.firstname,
         lastname: req.body.lastname
     };
-    
+
+    //  Insert new user record
     user.create(userInput, function(lastId) {
         if(lastId) {
             user.find(lastId, function(result){
                 res.redirect('/');
             });
-          
-        }else{
-            console.log('error creatinmg the user')
+        } else {
+            //console.log('error creatinmg the user')
+            // TODO: Display message to user showing that registration failed.
         }
     }
 )});
 
+// Go to page where user enters systolic, diastolic, and heart rate data.  Requires login.
+app.get('/data', isLoggedIn, function  (req, res) {    
+    const data = new Data();
+    par=req.params
+    data.read(par,function(result){
+        res.render('data',{title:"Enter Health Data",data:result, message: 'Hello world!'});
+    })
+});
+
+// Catch post of user health data 
 app.post('/data', isLoggedIn, function (req, res) {  
     const data= new Data();
     let dataInput = {
@@ -127,24 +148,25 @@ app.post('/data', isLoggedIn, function (req, res) {
             });
           
         }else{
-            console.log('error creating data: user not found');
-                res.redirect('/data/'); // Comment: handle errors gracefully
+            console.log('error creating data');
+            res.redirect('/data/'); // TODO: Handle errors gracefully
         }
     }
 )});
 
-
+// Main entry page
 app.get('/', (req, res, next) => {  
     res.render('login', {title:"Welcome to CTE Exercise"});
 });
 
+// Registration page
 app.get('/register',  function (req, res) {        
     res.render('register', {title:"Register"});
 });
 
 // Configure the app
 app.use(express.static('public'));
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 3000); // TODO: Serve real app on ports 80 and/or 443.  
 
 app.set('view engine', "pug")
 

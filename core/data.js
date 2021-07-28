@@ -25,9 +25,9 @@ Data.prototype = {
         });
     },
     create : function(body, callback){
-        console.log("About to create data"); 
+    // Create a new health record of diastolic, systolic, and heart rate associated with currently logged-in user by id 
         var bind = [];
-        // loop in the attributes of the object and push the values into the bind array.
+        // loop over the attributes of the object and push the values into the bind array.
         for(prop in body){
             bind.push(body[prop]);
         }
@@ -41,23 +41,19 @@ Data.prototype = {
             callback(result.insertId);
         });
     },
+
     read: function(data, callback){
-       
+       // Read data from readings table, careful to get only data associated with logged in user id.
         id = 1; // hardcoded id 
         // Modify to only current user's data: get from session
         //let sql= `SELECT * FROM data WHERE 0=0 AND id = ?`;
         let sql= `SELECT * FROM readings`;
-
-
-        database.query(sql,data,function(err, result) {
-            
+        database.query(sql,data,function(err, result) {            
             if(err) throw err
-
             if(result) {
                 callback(result)          
             }
         });
     }
-
 }
 module.exports = Data;
