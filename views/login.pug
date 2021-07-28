@@ -6,10 +6,11 @@ block content
     form(action="/login" method='post')
         p#legend Login
         label.letter(for='username') Email as Username:
-            input#username(type="text", name="username" value="amy@example.com")
+            input#username(type="text", name="username" value="")
         label.letter(for='password') Password:
-            input#password(type="password", name="password" value="amyspassword")
+            input#password(type="password", name="password" value="")
         div.asub
             input.submit(type="submit", name="done")   
+        p Hint: one valid user is amy@example.com  / amyspassword
 
         

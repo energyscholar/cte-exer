@@ -23,11 +23,10 @@ passport.deserializeUser(function (id, done) {
 });
 
 // passport local strategy for local-login, local refers to this app
-passport.use('local-login', new LocalStrategy(
-    function (username, password, done) {
+passport.use('local-login', new LocalStrategy(  {passReqToCallback: true},
+    function (req, username, password, done) {
         const user = new User();
-        var foundUser;
-         foundUser = user.find(username, function(result){
+             user.find(username, function(result){
              //console.log("after find result is " + result);  
              // TODO: implement system where console.log statements are visible in DEV mode yet  don't execute in PROD
              /*
@@ -43,6 +42,12 @@ passport.use('local-login', new LocalStrategy(
                  if (username === result[0].username && password === result[0].password) {
                      //console.log("login succeeds");
                      // TODO: Display messages in UI so user knows login succeeded. 
+                     // put user info on session for later use! 
+                     req.session.username  = result[0].username;
+                     req.session.userid    = result[0].id;
+                     req.session.firstname = result[0].firstname;
+                     req.session.lastname  = result[0].lastname;
+
                      return done(null, result, {"message": "Login successful"});
                  } else {
                      //console.log("login fails");
@@ -84,7 +89,6 @@ function isLoggedIn(req, res, next) {
 app.post("/login", 
     passport.authenticate("local-login", { failureRedirect: "/"}),
      function (req, res) {
-        //console.log("app.post login succeeded");
         res.redirect("/data");
     }
 );
@@ -126,8 +130,9 @@ app.post('/register', (req, res, next) => {
 // Go to page where user enters systolic, diastolic, and heart rate data.  Requires login.
 app.get('/data', isLoggedIn, function  (req, res) {    
     const data = new Data();
-    par=req.params
-    data.read(par,function(result){
+    par=req.params;
+    var userid = req.session.userid;
+    data.read(par,userid, function(result){
         res.render('data',{title:"Enter Health Data",data:result, message: 'Hello world!'});
     })
 });
@@ -136,19 +141,18 @@ app.get('/data', isLoggedIn, function  (req, res) {
 app.post('/data', isLoggedIn, function (req, res) {  
     const data= new Data();
     let dataInput = {
+        id: req.session.userid,
         systolic: req.body.systolic,
         diastolic: req.body.diastolic,
         hr: req.body.hr
     };
-    
     data.create(dataInput, function(lastId) {
         if(lastId) {
             user.find(lastId, function(result){
-                res.redirect('/data');
+                res.redirect('/data'); // TODO: factor out lastId.  with req.session.userid it doesn't matter
             });
           
         }else{
-            console.log('error creating data');
             res.redirect('/data/'); // TODO: Handle errors gracefully
         }
     }
